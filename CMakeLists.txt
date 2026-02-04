@@ -10,3 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test test/main.cpp)
 target_include_directories(test PRIVATE .)
+
+add_library(python SHARED test/python.cpp)
+target_include_directories(python PRIVATE .)

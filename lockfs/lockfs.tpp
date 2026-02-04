@@ -111,6 +111,7 @@ bool LockFs::LockFs<Storage>::loadAll(LockFs::Context & context)
         const FlashAddr addr = i * s->maxBlockSize();
         const auto hdr = Header::read(*s, addr);
         if (
+            hdr.has_value() &&
             !hdr->erased() &&
             hdr->tag == context.headers[i].current.tag &&
             hdr->revision == context.headers[i].current.revision
