@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Debug/Release/MinSizeRel")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "compile_commands.json")
+set(CMAKE_COLOR_DIAGNOSTICS ON CACHE BOOL "Color output")
 
 project(lockfs LANGUAGES CXX)
 

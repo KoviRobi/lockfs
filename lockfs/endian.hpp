@@ -42,6 +42,7 @@ struct EL
     }
 };
 
+// Initialise with repeating bytes
 template<typename T>
 constexpr T init(uint8_t byte)
 {
