@@ -3,9 +3,11 @@
 #include "endian.hpp"
 #include "flash_interface.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
-
+#include <iterator>
 #include <optional>
 
 using namespace Serialisation;
@@ -14,22 +16,18 @@ template<LockFs::Storage Storage>
 std::optional<typename LockFs::LockFs<Storage>::Header>
 LockFs::LockFs<Storage>::Header::read(Storage & s, const FlashAddr address)
 {
-    uint8_t buf[sizeof(Header)];
+    std::array<uint8_t, Header::size> buf;
     if (s.flashRead(address, buf))
     {
         size_t i = 0;
-        const auto tag       = EL<uint8_t>::load(&buf[i]);
-        const auto flags     = EL<uint8_t>::load(&buf[i += sizeof(tag)]);
-        const auto revision  = EL<uint8_t>::load(&buf[i += sizeof(flags)]);
-        const auto blockSize = EL<BlockSize>::load(&buf[i += sizeof(revision)]);
-        const auto checksum  = EL<Checksum>::load(&buf[i += sizeof(blockSize)]);
-        return Header{
-            .checksum = checksum,
-            .blockSize = blockSize,
-            .tag = tag,
-            .flags = flags,
-            .revision = revision
-        };
+        auto ret = Header{};
+        EL::Stream stream{buf};
+        stream.load(ret.tag);
+        stream.load(ret.flags);
+        stream.load(ret.revision);
+        stream.load(ret.blockSize);
+        stream.load(ret.checksum);
+        return ret;
     }
     return std::optional<Header>{};
 }
@@ -37,13 +35,15 @@ LockFs::LockFs<Storage>::Header::read(Storage & s, const FlashAddr address)
 template<LockFs::Storage Storage>
 bool LockFs::LockFs<Storage>::Header::write(Storage & s, FlashAddr address) const
 {
-    uint8_t buf[Header::size];
+    std::array<uint8_t, Header::size> buf;
     size_t i = 0;
-    EL<uint8_t>::store(&buf[i], tag);
-    EL<uint8_t>::store(&buf[i += sizeof(tag)], flags);
-    EL<uint8_t>::store(&buf[i += sizeof(flags)], revision);
-    EL<uint16_t>::store(&buf[i += sizeof(revision)], blockSize);
-    EL<Checksum>::store(&buf[i += sizeof(blockSize)], checksum);
+    auto iter = std::begin(buf);
+    EL::Stream stream{buf};
+    stream.store(tag);
+    stream.store(flags);
+    stream.store(revision);
+    stream.store(blockSize);
+    stream.store(checksum);
     return s.flashWrite(buf, address);
 }
 
